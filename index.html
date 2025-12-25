@@ -301,7 +301,6 @@
 
 <script>
     // --- VOLLSTÄNDIGE DATEN ---
-    // Alle Daten aus dem ursprünglichen Skript sind hier enthalten.
     
     const dbData = {
         album: [
@@ -450,7 +449,7 @@
             {id: 42, first: 'Bill', last: 'Clinton', phone: '001 75791946', email: 'Clinton@ostfalia.de', delayed: 0},
             {id: 43, first: 'George W.', last: 'Bush', phone: '001 62871946', email: 'G_Bush@ostfalia.de', delayed: 0},
             {id: 44, first: 'Barack', last: 'Obama', phone: '001 13021961', email: 'Obama@ostfalia.de', delayed: 0},
-            {id: 45, first: 'Donald', last: 'Trump', phone: '001 5052688840', email: 'trump@ostfalia.de', delayed: 4}, // > 3 for Exercise 7
+            {id: 45, first: 'Donald', last: 'Trump', phone: '001 5052688840', email: 'trump@ostfalia.de', delayed: 4}, 
             {id: 46, first: 'Biden', last: 'Joe', phone: '001 5052688822', email: 'biden@ostfalia.de', delayed: 0}
         ],
         borrowed: [
@@ -468,7 +467,7 @@
         {
             title: "1. Trigger: Automatische ID Vergabe",
             desc: "Implementieren Sie Trigger für die automatische Vergabe von IDs vom Typ integer für die Tabelle BORROWED. Dabei sollen fehlende Werte (Lücken) zuerst genutzt werden.",
-            [cite_start]cite: "[cite: 3-5]",
+            cite: "cite: [cite: 3-5]",
             solution: `CREATE OR REPLACE TRIGGER AI_BO
 BEFORE INSERT ON BORROWED
 FOR EACH ROW
@@ -489,7 +488,7 @@ END;`,
         {
             title: "2. Trigger: Rückgabedatum setzen",
             desc: "In der Datenbank soll das späteste Rückgabedatum automatisch eingetragen werden. Die Ausleihdauer beträgt 30 Tage. Verwenden Sie einen Trigger.",
-            [cite_start]cite: "[cite: 20-22]",
+            [cite_start]cite: "cite: [cite: 20-22]",
             solution: `CREATE OR REPLACE TRIGGER RD_BO
 BEFORE INSERT ON BORROWED
 FOR EACH ROW
@@ -503,7 +502,7 @@ END;`,
         {
             title: "3. View: Anstehende Rückgaben",
             desc: "Erstellen Sie einen View 'StatUpcomingReturns': Anzeige aller Ausleihen (Titel, Vorname, Nachname), die in den kommenden 10 Tagen zurückgegeben werden müssen.",
-            [cite_start]cite: "[cite: 36-37]",
+            [cite_start]cite: "cite: [cite: 36-37]",
             solution: `CREATE OR REPLACE VIEW StatUpcomingReturns AS
 SELECT DateReturn, FirstName, LastName 
 FROM person 
@@ -515,7 +514,7 @@ WHERE DateReturn <= sysdate + 10;`,
         {
             title: "4. View: Monatliche Statistik",
             desc: "Anzeige des monatlichen Verlaufes der Anzahl Ausleihen pro Monat (Summe). Nutzen Sie die Funktion extract(month from DateAttribut).",
-            [cite_start]cite: "[cite: 45-46]",
+            [cite_start]cite: "cite: [cite: 45-46]",
             solution: `CREATE OR REPLACE VIEW statBorrowedAlbums AS
 SELECT extract (month from DateB) as "Monat", 
        count(*) as "Number" 
@@ -527,7 +526,7 @@ ORDER BY "Monat";`,
         {
             title: "5. Procedure: Album Verfügbarkeit",
             desc: "Erstellen Sie eine Prozedur 'ISALBUMAVAILABLE', die prüft, ab wann ein Album wieder verfügbar ist und das Ergebnis in eine Tabelle 'albumavailable' schreibt.",
-            [cite_start]cite: "[cite: 52-53]",
+            [cite_start]cite: "cite: [cite: 52-53]",
             solution: `CREATE OR REPLACE PROCEDURE ISALBUMAVAILABLE (
   MYALBUMID IN NUMBER
 ) AS
@@ -548,7 +547,7 @@ END;`,
         {
             title: "6. Trigger: Verspätungszähler (Delete)",
             desc: "Bei Rückgabe eines Buches (Delete in Tabelle Borrowed): Ist das Buch zu spät zurückgekommen, soll dies in den Benutzerdaten ('numdelayedreturns') hochgezählt werden.",
-            [cite_start]cite: "[cite: 80-81]",
+            [cite_start]cite: "cite: [cite: 80-81]",
             solution: `CREATE OR REPLACE TRIGGER ALBUMRETURN
 BEFORE DELETE ON BORROWED
 FOR EACH ROW
@@ -564,7 +563,7 @@ END;`,
         {
             title: "7. Trigger: Sperre bei Verspätung",
             desc: "Ist die Anzahl der verspäteten Rückgaben eines Nutzers > 3, soll der Nutzer keine neuen Ausleihen mehr vornehmen können (Fehler werfen).",
-            [cite_start]cite: "[cite: 92-93]",
+            [cite_start]cite: "cite: [cite: 92-93]",
             solution: `CREATE OR REPLACE TRIGGER LB_BO
 BEFORE INSERT ON borrowed
 FOR EACH ROW
