@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>turbodev VISUAL: Trainer Edition (Complete)</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #3498db;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --bg-color: #f4f7f6;
+            --text-color: #333;
+            --brand-color: #e74c3c;
+            --code-bg: #282c34;
+            --code-text: #abb2bf;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 20px;
+            position: relative;
+        }
+
+        .brand {
+            font-weight: 900;
+            color: var(--brand-color);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            font-size: 0.9em;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        h1 { margin: 0; color: var(--primary-color); }
+        p.subtitle { color: #666; margin-top: 5px; margin-bottom: 20px; }
+
+        /* Schema Visualizer */
+        .schema-visualizer {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+        }
+
+        .schema-box {
+            background: white;
+            padding: 10px 15px;
+            border-radius: 4px;
+            border-left: 4px solid var(--primary-color);
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.8em;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            max-width: 300px;
+            line-height: 1.4;
+        }
+
+        .schema-box.borrowed-schema { border-left-color: var(--accent-color); }
+        .schema-title { font-weight: bold; color: var(--primary-color); display: block; margin-bottom: 4px;}
+        .schema-attrs u { border-bottom: 2px solid var(--primary-color); text-decoration: none; font-weight: bold;}
+        .schema-attrs i { color: var(--accent-color); font-style: italic; }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+        }
+
+        .tabs { display: flex; gap: 10px; }
+
+        .tab-btn {
+            background: #eee;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            color: #555;
+        }
+
+        .tab-btn:hover { background: #ddd; }
+        .tab-btn.active {
+            background: var(--accent-color);
+            color: white;
+            box-shadow: 0 4px 6px rgba(52, 152, 219, 0.3);
+        }
+        .tab-btn.exercise-mode {
+            background: var(--warning-color);
+            color: white;
+        }
+
+        #searchInput {
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            width: 250px;
+            outline: none;
+        }
+
+        /* Views */
+        .view-section { display: none; }
+        .view-section.active-view { display: block; }
+
+        /* Table Styling */
+        .table-wrapper { overflow-x: auto; max-height: 600px; } /* Scrollbar added for large data */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: var(--primary-color); color: white; position: sticky; top: 0; z-index: 10; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        
+        /* EXERCISE MODE STYLES */
+        .exercise-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .task-panel, .solution-panel {
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #fafafa;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .task-header {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .task-desc { margin-bottom: 15px; line-height: 1.5; }
+
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-family: 'Courier New', Courier, monospace;
+            box-sizing: border-box; 
+            margin-bottom: 10px;
+            resize: vertical;
+        }
+
+        .code-display {
+            background: var(--code-bg);
+            color: var(--code-text);
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Courier New', Courier, monospace;
+            white-space: pre-wrap;
+            overflow-x: auto;
+            display: none; 
+            font-size: 0.9em;
+            flex-grow: 1;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+        
+        .btn-reveal { background-color: var(--accent-color); color: white; }
+        .btn-simulate { background-color: var(--success-color); color: white; }
+        .btn-nav { background-color: var(--primary-color); color: white; }
+
+        .simulation-log {
+            margin-top: 10px;
+            padding: 10px;
+            background: #e8f5e9;
+            border-left: 4px solid var(--success-color);
+            font-size: 0.9em;
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .exercise-container { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <span class="brand">turbodev VISUAL: TRAINER</span>
+        <h1>🎵 Musikdatenbank & Übungen</h1>
+        <p class="subtitle">Vollständige Datensätze (100 Alben, 46 Personen)</p>
+
+        <div class="schema-visualizer">
+            <div class="schema-box">
+                <span class="schema-title">ALBUM</span>
+                <span class="schema-attrs">(<u>ALBUMID</u>, NAME, PERFORMER, LABEL, RELEASED)</span>
+            </div>
+            <div class="schema-box">
+                <span class="schema-title">PERSON</span>
+                <span class="schema-attrs">(<u>PERSONID</u>, FIRSTNAME, LASTNAME, PHONENUMBER, EMAIL, NUMDELAYEDRETURNS)</span>
+            </div>
+            <div class="schema-box borrowed-schema">
+                <span class="schema-title">BORROWED</span>
+                <span class="schema-attrs">(<u>BORROWEDID</u>, <i>ALBUM_ALBUMID</i>, <i>PERSON_PERSONID</i>, DATEB, RETURNDATE)</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="controls">
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchView('data', 'album')">💿 Alben (100)</button>
+            <button class="tab-btn" onclick="switchView('data', 'person')">👤 Personen (46)</button>
+            <button class="tab-btn" onclick="switchView('data', 'borrowed')">📅 Ausleihen</button>
+            <button class="tab-btn exercise-mode" onclick="switchView('exercise')">🎓 Übungsaufgaben (7)</button>
+        </div>
+        <input type="text" id="searchInput" placeholder="Daten filtern..." onkeyup="filterTable()">
+    </div>
+
+    <div id="dataView" class="view-section active-view">
+        <div class="table-wrapper">
+            <table id="dataTable">
+                <thead></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="exerciseView" class="view-section">
+        <div style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
+            <button class="btn btn-nav" onclick="prevExercise()">← Zurück</button>
+            <span id="exerciseCounter" style="font-weight: bold;">Aufgabe 1 von 7</span>
+            <button class="btn btn-nav" onclick="nextExercise()">Weiter →</button>
+        </div>
+
+        <div class="exercise-container">
+            <div class="task-panel">
+                <div class="task-header">
+                    <span id="taskTitle">Titel der Aufgabe</span>
+                </div>
+                <div id="taskDescription" class="task-desc">
+                    Beschreibung...
+                </div>
+                <textarea placeholder="Schreibe hier deinen SQL/PLSQL Code..."></textarea>
+                <div>
+                    <button class="btn btn-reveal" onclick="toggleSolution()">Lösung anzeigen</button>
+                    <button id="simBtn" class="btn btn-simulate" onclick="runSimulation()" style="display:none;">⚡ Trigger Simulieren</button>
+                </div>
+                <div id="simLog" class="simulation-log"></div>
+            </div>
+
+            <div class="solution-panel">
+                <div class="task-header">Lösung (PL/SQL)</div>
+                <div id="solutionCode" class="code-display">
+                    -- Code erscheint hier
+                </div>
+                <p id="solPlaceholder" style="color: #999; font-style: italic; text-align: center; margin-top: 50px;">
+                    Klicke auf "Lösung anzeigen",<br>um die Musterlösung zu sehen.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- VOLLSTÄNDIGE DATEN ---
+    // Alle Daten aus dem ursprünglichen Skript sind hier enthalten.
+    
+    const dbData = {
+        album: [
+            {id: 1, name: 'The Queen Is Dead', performer: 'The Smiths', label: 'Rough Trade', released: 1986},
+            {id: 2, name: 'Revolver', performer: 'The Beatles', label: 'Parlophone', released: 1966},
+            {id: 3, name: 'Hunky Dory', performer: 'David Bowie', label: 'RCA', released: 1971},
+            {id: 4, name: 'Is This It', performer: 'The Strokes', label: 'Rough Trade', released: 2001},
+            {id: 5, name: 'The Velvet Underground and Nico', performer: 'The Velvet Underground and Nico', label: 'Verve', released: 1967},
+            {id: 6, name: 'Different Class', performer: 'Pulp', label: 'Island', released: 1995},
+            {id: 7, name: 'The Stone Roses', performer: 'The Stone Roses', label: 'Silvertone', released: 1989},
+            {id: 8, name: 'Doolittle', performer: 'Pixies', label: '4AD', released: 1989},
+            {id: 9, name: 'The Beatles', performer: 'The Beatles', label: 'Apple', released: 1968},
+            {id: 10, name: 'Definitely Maybe', performer: 'Oasis', label: 'Creation', released: 1994},
+            {id: 11, name: 'Nevermind', performer: 'Nirvana', label: 'Geffen', released: 1991},
+            {id: 12, name: 'Horses', performer: 'Patti Smith', label: 'Arista', released: 1975},
+            {id: 13, name: 'Funeral', performer: 'Arcade Fire', label: 'Rough Trade', released: 2004},
+            {id: 14, name: 'Low', performer: 'David Bowie', label: 'RCA', released: 1977},
+            {id: 15, name: 'Let England Shake', performer: 'PJ Harvey', label: 'Island', released: 2011},
+            {id: 16, name: 'Closer', performer: 'Joy Division', label: 'Factory', released: 1980},
+            {id: 17, name: 'It Takes A Nation Of Millions To Hold Us Back', performer: 'Public Enemy', label: 'Def Jam', released: 1988},
+            {id: 18, name: 'Loveless', performer: 'My Bloody Valentine', label: 'Creation', released: 1991},
+            {id: 19, name: 'Whatever People Say I Am  That’s What I’m Not', performer: 'Arctic Monkeys', label: 'Domino', released: 2006},
+            {id: 20, name: 'OK Computer', performer: 'Radiohead', label: 'Parlophone', released: 1997},
+            {id: 21, name: 'My Beautiful Dark Twisted Fantasy', performer: 'Kanye West', label: 'Roc-A-Fella/Def Jam', released: 2010},
+            {id: 22, name: 'Parklife', performer: 'Blur', label: 'Food', released: 1994},
+            {id: 23, name: 'The Rise And Fall Of Ziggy Stardust And The Spiders From Mars', performer: 'David Bowie', label: 'RCA', released: 1972},
+            {id: 24, name: 'Exile On Main St', performer: 'The Rolling Stones', label: 'Rolling Stones', released: 1972},
+            {id: 25, name: 'What’s Going On', performer: 'Marvin Gaye', label: 'Tamla', released: 1971},
+            {id: 26, name: 'Pet Sounds', performer: 'The Beach Boys', label: 'Capitol', released: 1966},
+            {id: 27, name: 'Screamadelica', performer: 'Primal Scream', label: 'Creation', released: 1991},
+            {id: 28, name: 'Back To Black', performer: 'Amy Winehouse', label: 'Island', released: 2006},
+            {id: 29, name: 'Marquee Moon', performer: 'Television', label: 'Elektra', released: 1977},
+            {id: 30, name: 'Enter The Wu-Tang (36 Chamblers)', performer: 'Wu-Tang Clam', label: 'Loud', released: 1993},
+            {id: 31, name: 'Dog Man Star', performer: 'Suede', label: 'Nude', released: 1994},
+            {id: 32, name: 'Paul’s Boutique', performer: 'Beastie Boys', label: 'Capitol/EMI', released: 1989},
+            {id: 33, name: 'Modern Life Is Rubbish', performer: 'Blur', label: 'Food', released: 1993},
+            {id: 34, name: 'Abbey Road', performer: 'The Beatles', label: 'Apple', released: 1969},
+            {id: 35, name: 'In Utero', performer: 'Nirvana', label: 'DGC', released: 1993},
+            {id: 36, name: 'Blood On The Tracks', performer: 'Bob Dylan', label: 'CBS', released: 1975},
+            {id: 37, name: 'Forever Changes', performer: 'Love', label: 'Elektra', released: 1967},
+            {id: 38, name: 'Never Mind The Bollocks', performer: 'The Sex Pistols', label: 'Virgin', released: 1977},
+            {id: 39, name: 'London Calling', performer: 'The Clash', label: 'CBS/Epic/Legacy', released: 1979},
+            {id: 40, name: 'Unknown Pleasures', performer: 'Joy Division', label: 'Factory', released: 1979},
+            {id: 41, name: 'Daydream Nation', performer: 'Sonic Youth', label: 'Enigma', released: 1988},
+            {id: 42, name: 'Innervisions', performer: 'Stevie Wonder', label: 'Tamla', released: 1973},
+            {id: 43, name: 'Rubber Soul', performer: 'The Beatles', label: 'Parlophone', released: 1965},
+            {id: 44, name: 'The Holy Bible', performer: 'Manic Street Preachers', label: 'Epic', released: 1994},
+            {id: 45, name: 'Parallel Lines', performer: 'Blondie', label: 'Chrysallis', released: 1978},
+            {id: 46, name: 'Debut', performer: 'Bjork', label: 'One Little Indian', released: 1993},
+            {id: 47, name: 'Strangeways Here We Come', performer: 'The Smiths', label: 'Rough Trade', released: 1987},
+            {id: 48, name: 'Hounds Of Love', performer: 'Kate Bush', label: 'EMI', released: 1985},
+            {id: 49, name: 'Sound Of Silver', performer: 'LCD Soundsystem', label: 'Capitol', released: 2007},
+            {id: 50, name: 'Dusty In Memphis', performer: 'Dusty Springfield', label: 'Atlantic', released: 1969},
+            {id: 51, name: 'Rumours', performer: 'Fleetwood Mac', label: 'Warner Bros', released: 1977},
+            {id: 52, name: 'Let It Bleed', performer: 'The Rolling Stones', label: 'Decca', released: 1969},
+            {id: 53, name: 'Station To Station', performer: 'David Bowie', label: 'RCA', released: 1976},
+            {id: 54, name: 'Remain In Light', performer: 'Talking Heads', label: 'Sire', released: 1980},
+            {id: 55, name: 'Sticky Fingers', performer: 'The Rolling Stones', label: 'Rolling Stones', released: 1971},
+            {id: 56, name: 'After The Gold Rush', performer: 'Neil Young', label: 'Reprise', released: 1970},
+            {id: 57, name: 'The Man Machine', performer: 'Kraftwerk', label: 'EMI/Kling Klang/Capitol', released: 1978},
+            {id: 58, name: 'Surfer Rosa', performer: 'Pixies', label: '4AD', released: 1988},
+            {id: 59, name: 'In Rainbows', performer: 'Radiohead', label: 'Self released', released: 2007},
+            {id: 60, name: 'Blue Lines', performer: 'Massive Attack', label: 'Virgin', released: 1991},
+            {id: 61, name: 'The Clash', performer: 'The Clash', label: 'Self', released: 1977},
+            {id: 62, name: 'Blonde On Blonde', performer: 'Bob Dylan', label: 'Columbia', released: 1966},
+            {id: 63, name: 'Blue', performer: 'Joni Mitchell', label: 'Reprise', released: 1971},
+            {id: 64, name: 'Highway 61 Revisited', performer: 'Bob Dylan', label: 'Columbia', released: 1965},
+            {id: 65, name: 'Automatic For The People', performer: 'REM', label: 'Warner Bros', released: 1992},
+            {id: 66, name: 'The Bends', performer: 'Radiohead', label: 'Parlophone', released: 1995},
+            {id: 67, name: 'What’s The Story) Morning Glory?', performer: 'Oasis', label: 'Creation', released: 1995},
+            {id: 68, name: 'Astral Weeks', performer: 'Van Morrison', label: 'Warner Bros', released: 1968},
+            {id: 69, name: 'Murmur', performer: 'REM', label: 'IRS', released: 1983},
+            {id: 70, name: 'Up The Bracket', performer: 'The Libertines', label: 'Rough Trade', released: 2002},
+            {id: 71, name: 'Harvest', performer: 'Neil Young', label: 'Reprise', released: 1972},
+            {id: 72, name: 'Transformer', performer: 'Lou Reed', label: 'RCA', released: 1972},
+            {id: 73, name: 'Bringing It All Back Home', performer: 'Bob Dylan', label: 'Columbia', released: 1965},
+            {id: 74, name: 'Illmatic', performer: 'Nas', label: 'Columbia', released: 1994},
+            {id: 75, name: 'Dookie', performer: 'Green Day', label: 'Reprise', released: 1994},
+            {id: 76, name: 'Discovery', performer: 'Daft Punk', label: 'Virgin', released: 2001},
+            {id: 77, name: 'De Stijl', performer: 'The White Stripes', label: 'Sympathy For The Record Industry', released: 2000},
+            {id: 78, name: 'Suede', performer: 'Suede', label: 'Nude', released: 1993},
+            {id: 79, name: 'Kind Of Blue', performer: 'Miles Davis', label: 'Columbia', released: 1959},
+            {id: 80, name: 'Raw Power', performer: 'Iggy and The Stooges', label: 'Columbia', released: 1973},
+            {id: 81, name: 'Trans-Europe Express', performer: 'Kraftwerk', label: 'Kling Klang', released: 1977},
+            {id: 82, name: 'Tapestry', performer: 'Carole King', label: 'Ode', released: 1971},
+            {id: 83, name: 'The Band', performer: 'The Band', label: 'Capitol', released: 1969},
+            {id: 84, name: 'Live Through This', performer: 'Hole', label: 'City Slang', released: 1994},
+            {id: 85, name: 'Born To Run', performer: 'Bruce Springsteen', label: 'CBS', released: 1975},
+            {id: 86, name: 'Grace', performer: 'Jeff Buckley', label: 'Columbia', released: 1994},
+            {id: 87, name: 'Sgt.  Pepper’s Lonely Hearts Club Band', performer: 'The Beatles', label: 'Parlophone', released: 1967},
+            {id: 88, name: 'For Your Pleasure', performer: 'Roxy Music', label: 'Island', released: 1973},
+            {id: 89, name: 'The Miseducation Of Lauryn Hill', performer: 'Lauryn Hill', label: 'Ruffhouse/Columbia', released: 1998},
+            {id: 90, name: 'A Grand Dont Come For Free', performer: 'The Streets', label: 'Locked On/679', released: 2004},
+            {id: 91, name: 'Purple Rain', performer: 'Prince And The Revolution', label: 'Warner Bros', released: 1984},
+            {id: 92, name: 'Radiator', performer: 'Super Furry Animals', label: 'Creation', released: 1997},
+            {id: 93, name: 'Songs For The Deaf', performer: 'Queens Of The Stone Age', label: 'Interscope', released: 2002},
+            {id: 95, name: 'Spirit Of Eden', performer: 'Talk Talk', label: 'Parlophone', released: 1988},
+            {id: 96, name: 'Fear Of A Black Planet', performer: 'Public Enemy', label: 'Def Jam', released: 1990},
+            {id: 97, name: 'The Smiths', performer: 'The Smiths', label: 'Rough Trade', released: 1984},
+            {id: 98, name: 'In The Aeroplane Over The Sea', performer: 'Neutral Milk Hotel', label: 'Merge/Domino', released: 1998},
+            {id: 99, name: 'The Libertines', performer: 'The Libertines', label: 'Rough Trade', released: 2004},
+            {id: 100, name: 'Hatful Of Hollow', performer: 'The Smiths', label: 'Rough Trade', released: 1984}
+        ],
+        person: [
+            {id: 1, first: 'George', last: 'Washington', phone: '001 93571731', email: 'Washington@ostfalia.de', delayed: 0},
+            {id: 2, first: 'John', last: 'Adams', phone: '001 15061735', email: 'Adams@ostfalia.de', delayed: 0},
+            {id: 3, first: 'Thomas', last: 'Jefferson', phone: '001 78861743', email: 'Jefferson@ostfalia.de', delayed: 0},
+            {id: 4, first: 'James', last: 'Madison', phone: '001 81561751', email: 'Madison@ostfalia.de', delayed: 0},
+            {id: 5, first: 'James', last: 'Monroe', phone: '001 67201758', email: 'Monroe@ostfalia.de', delayed: 0},
+            {id: 6, first: 'John Quincy', last: 'Adams', phone: '001 15801767', email: 'Adams@ostfalia.de', delayed: 0},
+            {id: 7, first: 'Andrew', last: 'Jackson', phone: '001 71871767', email: 'Jackson@ostfalia.de', delayed: 0},
+            {id: 8, first: 'Martin', last: 'van Buren', phone: '001 22501782', email: 'vanBuren@ostfalia.de', delayed: 0},
+            {id: 9, first: 'William H.', last: 'Harrison', phone: '001 26041773', email: 'Harrison@ostfalia.de', delayed: 0},
+            {id: 10, first: 'John', last: 'Tyler', phone: '001 74731790', email: 'Tyler@ostfalia.de', delayed: 0},
+            {id: 11, first: 'James K.', last: 'Polk', phone: '001 59711795', email: 'Polk@ostfalia.de', delayed: 0},
+            {id: 12, first: 'Zachary', last: 'Taylor', phone: '001 32241782', email: 'Taylor@ostfalia.de', delayed: 0},
+            {id: 13, first: 'Millard', last: 'Fillmore', phone: '001 25101800', email: 'Fillmore@ostfalia.de', delayed: 0},
+            {id: 14, first: 'Franklin', last: 'Pierce', phone: '001 52311804', email: 'Pierce@ostfalia.de', delayed: 0},
+            {id: 15, first: 'James', last: 'Buchanan', phone: '001 46021791', email: 'Buchanan@ostfalia.de', delayed: 0},
+            {id: 16, first: 'Abraham', last: 'Lincoln', phone: '001 62391809', email: 'Lincoln@ostfalia.de', delayed: 0},
+            {id: 17, first: 'Andrew', last: 'Johnson', phone: '001 25791808', email: 'Johnson@ostfalia.de', delayed: 0},
+            {id: 18, first: 'Ulysses S.', last: 'Grant', phone: '001 34161822', email: 'Grant@ostfalia.de', delayed: 0},
+            {id: 19, first: 'Rutherford B.', last: 'Hayes', phone: '001 93571731', email: 'Hayes@ostfalia.de', delayed: 0},
+            {id: 20, first: 'James A', last: 'Garfield', phone: '001 33821831', email: 'Garfield@ostfalia.de', delayed: 0},
+            {id: 21, first: 'Chester A', last: 'Arthur', phone: '001 33671830', email: 'Arthur@ostfalia.de', delayed: 0},
+            {id: 22, first: 'Grover', last: 'Cleveland', phone: '001 85321837', email: 'Cleveland@ostfalia.de', delayed: 0},
+            {id: 23, first: 'Benjamin', last: 'Harrison', phone: '001 59181833', email: 'Harrison@ostfalia.de', delayed: 0},
+            {id: 24, first: 'Grover', last: 'Cleveland', phone: '001 19591837', email: 'Cleveland@ostfalia.de', delayed: 0},
+            {id: 25, first: 'William', last: 'McKinley', phone: '001 46761843', email: 'McKinley@ostfalia.de', delayed: 0},
+            {id: 26, first: 'Theodore', last: 'Roosevelt', phone: '001 83121858', email: 'Roosevelt@ostfalia.de', delayed: 0},
+            {id: 27, first: 'William H.', last: 'Taft', phone: '001 49301857', email: 'Taft@ostfalia.de', delayed: 0},
+            {id: 28, first: 'Woodrow', last: 'Wilson', phone: '001 40051856', email: 'Wilson@ostfalia.de', delayed: 0},
+            {id: 29, first: 'Warren G.', last: 'Harding', phone: '001 46451865', email: 'Harding@ostfalia.de', delayed: 0},
+            {id: 30, first: 'Calvin', last: 'Coolidge', phone: '001 49541872', email: 'Coolidge@ostfalia.de', delayed: 0},
+            {id: 31, first: 'Herbert C.', last: 'Hoover', phone: '001 50901874', email: 'Hoover@ostfalia.de', delayed: 0},
+            {id: 32, first: 'Franklin D.', last: 'Roosevelt', phone: '001 51751882', email: 'Roosevelt@ostfalia.de', delayed: 0},
+            {id: 33, first: 'Harry S.', last: 'Truman', phone: '001 31801884', email: 'Truman@ostfalia.de', delayed: 0},
+            {id: 34, first: 'Dwight D.', last: 'Eisenhower', phone: '001 17211890', email: 'Eisenhower@ostfalia.de', delayed: 0},
+            {id: 35, first: 'John F.', last: 'Kennedy', phone: '001 74671917', email: 'Kennedy@ostfalia.de', delayed: 0},
+            {id: 36, first: 'Lyndon B.', last: 'Johnson', phone: '001 26251908', email: 'Johnson@ostfalia.de', delayed: 0},
+            {id: 37, first: 'Richard M', last: 'Nixon', phone: '001 43601913', email: 'Nixon@ostfalia.de', delayed: 0},
+            {id: 38, first: 'Gerald', last: 'Ford', phone: '001 78751913', email: 'Ford@ostfalia.de', delayed: 0},
+            {id: 39, first: 'James E.', last: 'Carter', phone: '001 35121924', email: 'Carter@ostfalia.de', delayed: 0},
+            {id: 40, first: 'Ronald', last: 'Reagan', phone: '001 41341911', email: 'Reagan@ostfalia.de', delayed: 0},
+            {id: 41, first: 'George', last: 'Bush', phone: '001 77741924', email: 'Bush@ostfalia.de', delayed: 0},
+            {id: 42, first: 'Bill', last: 'Clinton', phone: '001 75791946', email: 'Clinton@ostfalia.de', delayed: 0},
+            {id: 43, first: 'George W.', last: 'Bush', phone: '001 62871946', email: 'G_Bush@ostfalia.de', delayed: 0},
+            {id: 44, first: 'Barack', last: 'Obama', phone: '001 13021961', email: 'Obama@ostfalia.de', delayed: 0},
+            {id: 45, first: 'Donald', last: 'Trump', phone: '001 5052688840', email: 'trump@ostfalia.de', delayed: 4}, // > 3 for Exercise 7
+            {id: 46, first: 'Biden', last: 'Joe', phone: '001 5052688822', email: 'biden@ostfalia.de', delayed: 0}
+        ],
+        borrowed: [
+            {id: 1, albumId: 43, personId: 1, date: '2013-01-31', returnDate: '2013-03-02'},
+            {id: 2, albumId: 2, personId: 38, date: '2014-10-31', returnDate: '2014-11-30'},
+            {id: 3, albumId: 18, personId: 1, date: '2013-01-31', returnDate: '2013-03-02'},
+            {id: 4, albumId: 18, personId: 5, date: '1999-01-31', returnDate: '1999-03-02'},
+            {id: 5, albumId: 14, personId: 45, date: '2017-01-15', returnDate: '2017-02-14'},
+            {id: 6, albumId: 18, personId: 45, date: '2017-01-15', returnDate: '2017-02-14'}
+        ]
+    };
+
+    // --- AUFGABEN (EXERCISES) ---
+    const exercises = [
+        {
+            title: "1. Trigger: Automatische ID Vergabe",
+            desc: "Implementieren Sie Trigger für die automatische Vergabe von IDs vom Typ integer für die Tabelle BORROWED. Dabei sollen fehlende Werte (Lücken) zuerst genutzt werden.",
+            [cite_start]cite: "[cite: 3-5]",
+            solution: `CREATE OR REPLACE TRIGGER AI_BO
+BEFORE INSERT ON BORROWED
+FOR EACH ROW
+DECLARE
+  counter INTEGER;
+BEGIN
+  counter := 1;
+  FOR i in (select BorrowedId from Borrowed ORDER BY BorrowedId ASC) LOOP
+    IF counter != i.BorrowedId THEN
+      EXIT;
+    END IF;
+    counter := counter + 1;
+  END LOOP;
+  :NEW.BorrowedId := counter;
+END;`,
+            simulation: "autoId"
+        },
+        {
+            title: "2. Trigger: Rückgabedatum setzen",
+            desc: "In der Datenbank soll das späteste Rückgabedatum automatisch eingetragen werden. Die Ausleihdauer beträgt 30 Tage. Verwenden Sie einen Trigger.",
+            [cite_start]cite: "[cite: 20-22]",
+            solution: `CREATE OR REPLACE TRIGGER RD_BO
+BEFORE INSERT ON BORROWED
+FOR EACH ROW
+BEGIN
+  IF :NEW.DATEB IS NOT NULL THEN
+     :NEW.returnDate := :NEW.DATEB + 30;
+  END IF;
+END;`,
+            simulation: "returnDate"
+        },
+        {
+            title: "3. View: Anstehende Rückgaben",
+            desc: "Erstellen Sie einen View 'StatUpcomingReturns': Anzeige aller Ausleihen (Titel, Vorname, Nachname), die in den kommenden 10 Tagen zurückgegeben werden müssen.",
+            [cite_start]cite: "[cite: 36-37]",
+            solution: `CREATE OR REPLACE VIEW StatUpcomingReturns AS
+SELECT DateReturn, FirstName, LastName 
+FROM person 
+INNER JOIN borrowed ON personID = person_personID
+INNER JOIN album ON albumID = album_albumID
+WHERE DateReturn <= sysdate + 10;`,
+            simulation: "viewUpcoming"
+        },
+        {
+            title: "4. View: Monatliche Statistik",
+            desc: "Anzeige des monatlichen Verlaufes der Anzahl Ausleihen pro Monat (Summe). Nutzen Sie die Funktion extract(month from DateAttribut).",
+            [cite_start]cite: "[cite: 45-46]",
+            solution: `CREATE OR REPLACE VIEW statBorrowedAlbums AS
+SELECT extract (month from DateB) as "Monat", 
+       count(*) as "Number" 
+FROM Borrowed
+GROUP BY extract (month from DateB)
+ORDER BY "Monat";`,
+            simulation: "monthlyStats"
+        },
+        {
+            title: "5. Procedure: Album Verfügbarkeit",
+            desc: "Erstellen Sie eine Prozedur 'ISALBUMAVAILABLE', die prüft, ab wann ein Album wieder verfügbar ist und das Ergebnis in eine Tabelle 'albumavailable' schreibt.",
+            [cite_start]cite: "[cite: 52-53]",
+            solution: `CREATE OR REPLACE PROCEDURE ISALBUMAVAILABLE (
+  MYALBUMID IN NUMBER
+) AS
+  dater DATE;
+BEGIN
+  -- Max Return Date suchen
+  SELECT max (dateReturn) INTO dater 
+  FROM borrowed WHERE album_albumid = myAlbumID;
+
+  IF dater IS NULL THEN
+     dater := sysdate; -- Sofort verfügbar
+  END IF;
+
+  INSERT INTO albumavailable VALUES (myalbumID, dater);
+END;`,
+            simulation: "checkAvail"
+        },
+        {
+            title: "6. Trigger: Verspätungszähler (Delete)",
+            desc: "Bei Rückgabe eines Buches (Delete in Tabelle Borrowed): Ist das Buch zu spät zurückgekommen, soll dies in den Benutzerdaten ('numdelayedreturns') hochgezählt werden.",
+            [cite_start]cite: "[cite: 80-81]",
+            solution: `CREATE OR REPLACE TRIGGER ALBUMRETURN
+BEFORE DELETE ON BORROWED
+FOR EACH ROW
+BEGIN
+  IF :OLD.returnDate < sysdate THEN
+     UPDATE person 
+     SET numDelayedReturns = numDelayedReturns + 1
+     WHERE personID = :OLD.person_personID;
+  END IF;
+END;`,
+            simulation: "returnTrigger"
+        },
+        {
+            title: "7. Trigger: Sperre bei Verspätung",
+            desc: "Ist die Anzahl der verspäteten Rückgaben eines Nutzers > 3, soll der Nutzer keine neuen Ausleihen mehr vornehmen können (Fehler werfen).",
+            [cite_start]cite: "[cite: 92-93]",
+            solution: `CREATE OR REPLACE TRIGGER LB_BO
+BEFORE INSERT ON borrowed
+FOR EACH ROW
+DECLARE
+ v_delayed NUMBER;
+BEGIN
+ SELECT numDelayedReturns INTO v_delayed
+ FROM person WHERE personID = :NEW.person_personID;
+
+ IF v_delayed > 3 THEN
+   RAISE_APPLICATION_ERROR(-20001, 'Keine weitere Ausleihe möglich.');
+ END IF;
+END;`,
+            simulation: "blockUser"
+        }
+    ];
+
+    // --- LOGIK ---
+
+    let currentTable = 'album';
+    let currentExIndex = 0;
+
+    const columns = {
+        album: ['ALBUMID', 'NAME', 'PERFORMER', 'LABEL', 'RELEASED'],
+        person: ['PERSONID', 'FIRSTNAME', 'LASTNAME', 'PHONE', 'EMAIL', 'NUMDELAYED'],
+        borrowed: ['BORROWEDID', 'ALBUM_FK', 'PERSON_FK', 'DATEB', 'RETURNDATE']
+    };
+
+    function switchView(mode, tableName) {
+        document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active-view'));
+        document.getElementById('searchInput').style.display = mode === 'data' ? 'block' : 'none';
+
+        if (mode === 'data') {
+            document.getElementById('dataView').classList.add('active-view');
+            showTable(tableName);
+        } else {
+            document.getElementById('exerciseView').classList.add('active-view');
+            loadExercise(currentExIndex);
+        }
+    }
+
+    function showTable(tableName) {
+        if(tableName) currentTable = tableName;
+        
+        // Tab Buttons
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        if(currentTable === 'album') document.querySelectorAll('.tab-btn')[0].classList.add('active');
+        if(currentTable === 'person') document.querySelectorAll('.tab-btn')[1].classList.add('active');
+        if(currentTable === 'borrowed') document.querySelectorAll('.tab-btn')[2].classList.add('active');
+
+        // Header
+        const tableHead = document.querySelector('#dataTable thead');
+        tableHead.innerHTML = '<tr>' + columns[currentTable].map(col => `<th>${col}</th>`).join('') + '</tr>';
+        
+        renderRows(dbData[currentTable]);
+    }
+
+    function renderRows(data) {
+        const tableBody = document.querySelector('#dataTable tbody');
+        tableBody.innerHTML = '';
+        if (data.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Keine Daten</td></tr>';
+            return;
+        }
+        data.forEach(row => {
+            const tr = document.createElement('tr');
+            Object.values(row).forEach(val => {
+                const td = document.createElement('td');
+                td.textContent = val;
+                tr.appendChild(td);
+            });
+            tableBody.appendChild(tr);
+        });
+    }
+
+    function filterTable() {
+        const query = document.getElementById('searchInput').value.toLowerCase();
+        const data = dbData[currentTable];
+        const filtered = data.filter(row => Object.values(row).some(val => String(val).toLowerCase().includes(query)));
+        renderRows(filtered);
+    }
+
+    // --- EXERCISE LOGIC ---
+
+    function loadExercise(index) {
+        const ex = exercises[index];
+        document.getElementById('exerciseCounter').textContent = `Aufgabe ${index + 1} von ${exercises.length}`;
+        document.getElementById('taskTitle').textContent = ex.title;
+        document.getElementById('taskDescription').innerHTML = ex.desc + `<br><small style="color:#666">${ex.cite}</small>`;
+        document.querySelector('textarea').value = ''; 
+        
+        document.getElementById('solutionCode').style.display = 'none';
+        document.getElementById('solPlaceholder').style.display = 'block';
+        document.getElementById('solutionCode').textContent = ex.solution;
+        
+        const simBtn = document.getElementById('simBtn');
+        const simLog = document.getElementById('simLog');
+        simLog.style.display = 'none';
+        simLog.innerHTML = '';
+        
+        if(ex.simulation) {
+            simBtn.style.display = 'inline-block';
+        } else {
+            simBtn.style.display = 'none';
+        }
+    }
+
+    function nextExercise() {
+        if(currentExIndex < exercises.length - 1) {
+            currentExIndex++;
+            loadExercise(currentExIndex);
+        }
+    }
+
+    function prevExercise() {
+        if(currentExIndex > 0) {
+            currentExIndex--;
+            loadExercise(currentExIndex);
+        }
+    }
+
+    function toggleSolution() {
+        const code = document.getElementById('solutionCode');
+        const ph = document.getElementById('solPlaceholder');
+        if(code.style.display === 'none') {
+            code.style.display = 'block';
+            ph.style.display = 'none';
+        } else {
+            code.style.display = 'none';
+            ph.style.display = 'block';
+        }
+    }
+
+    // --- SIMULATION LOGIC ---
+
+    function runSimulation() {
+        const ex = exercises[currentExIndex];
+        const log = document.getElementById('simLog');
+        log.style.display = 'block';
+        
+        // 1. Auto ID
+        if (ex.simulation === 'autoId') {
+            let counter = 1;
+            const ids = dbData.borrowed.map(b => b.id).sort((a,b) => a-b);
+            for (let id of ids) {
+                if (counter !== id) break;
+                counter++;
+            }
+            // Wir fügen einfach mal Album 2 (Beatles) und Person 38 (Gerald Ford) hinzu
+            const newEntry = {
+                id: counter, albumId: 2, personId: 38, date: new Date().toISOString().split('T')[0], returnDate: null
+            };
+            dbData.borrowed.push(newEntry);
+            dbData.borrowed.sort((a,b) => a.id - b.id);
+            log.innerHTML = `<strong>Simulation:</strong> Lücke gefunden bei ID <strong>${counter}</strong>. Eintrag erstellt! (Siehe Tab "Ausleihen")`;
+        }
+
+        // 2. Return Date
+        if (ex.simulation === 'returnDate') {
+             const today = new Date();
+             const nextMonth = new Date();
+             nextMonth.setDate(today.getDate() + 30);
+             const returnStr = nextMonth.toISOString().split('T')[0];
+             const nextId = Math.max(...dbData.borrowed.map(b => b.id)) + 1;
+             
+             // Fügt einen neuen Eintrag hinzu (z.B. James Monroe leiht Nirvana)
+             dbData.borrowed.push({
+                 id: nextId, albumId: 11, personId: 5, date: today.toISOString().split('T')[0], returnDate: returnStr
+             });
+             log.innerHTML = `<strong>Simulation:</strong> Datum + 30 Tage berechnet. Rückgabe am: <strong>${returnStr}</strong>. Eingetragen!`;
+        }
+
+        // 3. View Upcoming
+        if (ex.simulation === 'viewUpcoming') {
+             // Da wir echte Daten haben, gibt es wahrscheinlich gerade keine Ausleihen, die in 10 Tagen fällig sind.
+             // Wir fälschen kurz eine für die Demo:
+             const testEntry = dbData.borrowed[0];
+             const today = new Date();
+             const in5Days = new Date();
+             in5Days.setDate(today.getDate() + 5);
+             testEntry.returnDate = in5Days.toISOString().split('T')[0];
+
+             const p = dbData.person.find(per => per.id === testEntry.personId);
+
+             log.innerHTML = `<strong>SELECT Simulation:</strong> Suche Rückgaben <= Heute + 10 Tage...<br>TREFFER: <strong>${p.first} ${p.last}</strong> muss Album ID ${testEntry.albumId} am ${testEntry.returnDate} zurückgeben.<br>(Zu Demo-Zwecken haben wir den ersten Eintrag in BORROWED manipuliert)`;
+        }
+
+        // 4. View Monthly Stats
+        if (ex.simulation === 'monthlyStats') {
+            const stats = {};
+            dbData.borrowed.forEach(b => {
+                const month = b.date.split('-')[1]; // Holt '01' aus '2013-01-31'
+                stats[month] = (stats[month] || 0) + 1;
+            });
+            let output = "Monat | Anzahl<br>-------|-------<br>";
+            for (let [m, c] of Object.entries(stats).sort()) {
+                output += `${m}    | ${c}<br>`;
+            }
+            log.innerHTML = `<strong>GROUP BY Simulation:</strong><br>${output}`;
+        }
+
+        // 5. Check Availability
+        if (ex.simulation === 'checkAvail') {
+            const albumId = 18; // Loveless (My Bloody Valentine)
+            const loans = dbData.borrowed.filter(b => b.albumId === albumId);
+            const maxDate = loans.reduce((max, b) => b.returnDate > max ? b.returnDate : max, "0000-00-00");
+            
+            log.innerHTML = `<strong>Prozedur Test:</strong><br>Prüfe Album ID ${albumId} (Loveless)...<br>Letztes Rückgabedatum in BORROWED: ${maxDate}<br>Ergebnis: Verfügbar ab diesem Datum.`;
+        }
+
+        // 6. Trigger Late Return (Delete)
+        if (ex.simulation === 'returnTrigger') {
+            // Wir suchen einen Eintrag der sicher in der Vergangenheit ist (ID 4 von 1999)
+            const lateId = 4;
+            const entry = dbData.borrowed.find(b => b.id === lateId);
+            
+            if(entry) {
+                // Aus der Tabelle löschen
+                dbData.borrowed = dbData.borrowed.filter(b => b.id !== lateId);
+                // Person finden und Zähler hochsetzen
+                const person = dbData.person.find(p => p.id === entry.personId);
+                person.delayed += 1;
+                
+                log.innerHTML = `<strong>DELETE Simulation:</strong><br>Ausleihe ID ${lateId} (von 1999!) gelöscht.<br>⚠️ War überfällig.<br>Update Person ${person.last} (ID ${person.id}): 'delayed' Zähler auf <strong>${person.delayed}</strong> erhöht.`;
+            } else {
+                log.innerHTML = "Eintrag ID 4 schon gelöscht. Bitte Seite neu laden zum erneuten Testen.";
+            }
+        }
+
+        // 7. Block User
+        if (ex.simulation === 'blockUser') {
+            const personId = 45; // Donald Trump
+            const person = dbData.person.find(p => p.id === personId);
+            if (person.delayed > 3) {
+                 log.innerHTML = `<strong style="color:red">FEHLER:</strong> Person ${person.last} hat ${person.delayed} Verspätungen.<br>⛔ RAISE_APPLICATION_ERROR(-20001, 'Keine weitere Ausleihe möglich.')`;
+            } else {
+                log.innerHTML = "Kein Fehler. Benutzer hat weniger als 4 Verspätungen.";
+            }
+        }
+    }
+
+    // Start
+    switchView('data', 'album');
+
+</script>
+
+</body>
+</html>
